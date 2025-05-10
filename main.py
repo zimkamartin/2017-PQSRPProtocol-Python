@@ -7,11 +7,33 @@ from utils.polynomial import add, sub, mul_simple, generate_modulo_polynomial, g
     generate_correct_complementary_coefficient, generate_constant_polynomial, generate_discrete_gaussian_polynomial
 from utils.infinity_norm import infinity_norm_iterable, symmetric_mod
 from utils.magic import signal_function, robust_extractor, hint_function
+from cryptography.hazmat.primitives import hashes
 
 # Params based on Section 4.1
 N = 1024
 Q = 1073479681
 STD_DEV = 3.192
+
+# THIS IS NOT HOW TO DO IT !!! THIS IS JUST FOR PROOF-OF-CONCEPT !!! THIS IS NOT HOW TO DO IT
+I = "identity123"
+PWD = "password123"
+SALT = "salt123".encode()
+# THIS IS NOT HOW TO DO IT !!! THIS IS JUST FOR PROOF-OF-CONCEPT !!! THIS IS NOT HOW TO DO IT
+
+
+def create_seeds():
+    # seed1 = SHA3-256(salt||SHA3-256(I||pwd))
+    digest_inner = hashes.Hash(hashes.SHA3_256())
+    digest_inner.update((I + PWD).encode())
+    inner_hash = digest_inner.finalize()
+    digest_outer = hashes.Hash(hashes.SHA3_256())
+    digest_outer.update(SALT + inner_hash)
+    seed1 = digest_outer.finalize()
+    # seed2 = SHA3-256(seed1)
+    digest = hashes.Hash(hashes.SHA3_256())
+    digest.update(seed1)
+    seed2 = digest.finalize()
+    return seed1, seed2
 
 
 # Phase 0 in the protocol - verifier creation.
@@ -19,6 +41,8 @@ def phase_0(a):
     # CLIENT: v = asv + 2ev
     modulo_polynomial = generate_modulo_polynomial(N)
     sv = generate_discrete_gaussian_polynomial(N, STD_DEV, Q)  # TODO for future: use seed1
+    # seed1 = SHA3-256(salt||SHA3-256(I||pwd)); seed2 = SHA3-256(seed1)
+    seed1, seed2 = create_seeds()
     ev = generate_discrete_gaussian_polynomial(N, STD_DEV, Q)  # TODO for future: use seed2
     a_sv = mul_simple(a, sv, modulo_polynomial, Q)
     two_ev = mul_simple(generate_constant_polynomial(2, N), ev, modulo_polynomial, Q)
