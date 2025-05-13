@@ -147,20 +147,29 @@ def phase_1(a, vs):  # {u,v}s = u / verifier on server's side, {u,v}c = u / veri
     sigmai = [robust_extractor(k, w, Q) for k, w in zip(ki, wj)]
     # SERVER: ski = SHA3-256(sigmai)
     ski = SHA3_256.new(bytes(sigmai)).digest()
-    print(skj == ski)
-    compare_sigmas(sigmai, sigmaj)  # Created just for debugging reasons.
-    compare_ki_kj(ki, kj, sigmai, sigmaj)  # Created just for debugging reasons.
+    return pi, pj, ski, skj
 
 
-def phase_2():  # TODO for future: implement it, now it is useless
-    pass
+def phase_2(pi, pj, ski, skj):  # TODO for future: implement it, now it is useless
+    # CLIENT: M1 = SHA3-256(pi || pj || ski)
+    m1 = SHA3_256.new(poly_to_bytes(pi + pj) + ski).digest()
+    # SERVER: M1' = SHA3-256(pi || pj || skj)
+    m1_prime = SHA3_256.new(poly_to_bytes(pi + pj) + skj).digest()
+    # M1 = M1' => key exchange is successful and client is authenticated.
+    print(f"M1 = M1\': {m1 == m1_prime}")
+    # SERVER: M2' = SHA3-256(pi || M1' || skj) and sends to client.
+    m2_prime = SHA3_256.new(poly_to_bytes(pi) + m1_prime + skj).digest()
+    # CLIENT: M2 = SHA3-256(pi || M1 || ski).
+    m2 = SHA3_256.new(poly_to_bytes(pi) + m1 + ski).digest()
+    # M2 = M2' => key exchange is successful and mutual authentication is achieved.
+    print(f"M2 = M2\': {m2 == m2_prime}")
 
 
 def run_protocol():
     a = generate_random_polynomial(N, Q)  # public parameter  # TODO look how it is done in Kyber
     v = phase_0(a)
-    phase_1(a, v)
-    phase_2()
+    pi, pj, ski, skj = phase_1(a, v)
+    phase_2(pi, pj, ski, skj)
 
 
 if __name__ == '__main__':
