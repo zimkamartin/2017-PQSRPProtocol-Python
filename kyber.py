@@ -22,12 +22,22 @@ def bytes_to_bits(b):
 
 #   Algorithm 8, SamplePolyCBD_eta(B)
 
-def sample_poly_cbd(eta, b, q):
+def sample_poly_cbd(eta, b, q, f, frm):
     b = bytes_to_bits(b)
-    f = [0]*256
     for i in range(256):
         x = sum(b[2*i*eta:(2*i + 1)*eta])
         y = sum(b[(2*i + 1)*eta:(2*i + 2)*eta])
         #f[i] = (x - y) % self.q
-        f[i] = symmetric_mod(x - y, q)
+        f[frm + i] = symmetric_mod(x - y, q)
     return f
+
+
+# We need polynomial of length 1024, so calls sample_poly_cbd more times (as in Kyber).
+def create_one_cbd_poly(n, eta, seed, q):
+    assert n == 1024
+    result = [0]*n
+    m = 0  # in Kyber it is n in this context.
+    for i in range(n // 256):
+        sample_poly_cbd(eta, prf(eta, seed, m), q, result, i * 256)
+        m += 1
+    return result

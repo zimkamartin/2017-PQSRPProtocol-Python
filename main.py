@@ -8,11 +8,14 @@ from utils.polynomial import add, sub, mul_simple, generate_modulo_polynomial, g
 from utils.infinity_norm import infinity_norm_iterable, symmetric_mod
 from utils.magic import signal_function, robust_extractor, hint_function
 from cryptography.hazmat.primitives import hashes
+from kyber import create_one_cbd_poly
 
 # Params based on Section 4.1
 N = 1024
 Q = 1073479681
 STD_DEV = 3.192
+
+ETA = 2
 
 # THIS IS NOT HOW TO DO IT !!! THIS IS JUST FOR PROOF-OF-CONCEPT !!! THIS IS NOT HOW TO DO IT
 I = "identity123"
@@ -40,10 +43,10 @@ def create_seeds():
 def phase_0(a):
     # CLIENT: v = asv + 2ev
     modulo_polynomial = generate_modulo_polynomial(N)
-    sv = generate_discrete_gaussian_polynomial(N, STD_DEV, Q)  # TODO for future: use seed1
     # seed1 = SHA3-256(salt||SHA3-256(I||pwd)); seed2 = SHA3-256(seed1)
     seed1, seed2 = create_seeds()
-    ev = generate_discrete_gaussian_polynomial(N, STD_DEV, Q)  # TODO for future: use seed2
+    sv = create_one_cbd_poly(N, ETA, seed1, Q)
+    ev = create_one_cbd_poly(N, ETA, seed2, Q)
     a_sv = mul_simple(a, sv, modulo_polynomial, Q)
     two_ev = mul_simple(generate_constant_polynomial(2, N), ev, modulo_polynomial, Q)
     v = add(a_sv, two_ev, Q)
