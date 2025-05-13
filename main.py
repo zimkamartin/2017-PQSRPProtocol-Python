@@ -139,7 +139,7 @@ def phase_2():  # TODO for future: implement it, now it is useless
 
 
 def run_protocol():
-    a = generate_random_polynomial(N, Q)  # public parameter
+    a = generate_random_polynomial(N, Q)  # public parameter  # TODO look how it is done in Kyber
     v, sv = phase_0(a)
     phase_1(a, v, sv)
     phase_2()
