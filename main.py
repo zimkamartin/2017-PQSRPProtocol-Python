@@ -2,9 +2,10 @@
 # Representation of polynomials: constant -> x^n. E.g. 5x^3 + 2x^2 + 1 = [1, 0, 2, 5]
 
 import math
+from Crypto.Hash import SHAKE128, SHAKE256, SHA3_256, SHA3_512
 from secrets import token_bytes
 from utils.polynomial import add, sub, mul_simple, generate_modulo_polynomial, generate_random_polynomial, \
-    generate_correct_complementary_coefficient, generate_constant_polynomial, generate_discrete_gaussian_polynomial
+    generate_correct_complementary_coefficient, generate_constant_polynomial, generate_discrete_gaussian_polynomial, poly_to_bytes
 from utils.infinity_norm import infinity_norm_iterable, symmetric_mod
 from utils.magic import signal_function, robust_extractor, hint_function
 from cryptography.hazmat.primitives import hashes
@@ -107,7 +108,7 @@ def phase_1(a, vs, sv):  # {u,v}s = u / verifier on server's side, {u,v}c = u / 
     added_fst_two = add(a_s1prime, two_e1prime, Q)
     pj = add(added_fst_two, vs, Q)
     # SERVER: u = XOF(H(pi||pj))
-    us = generate_random_polynomial(N, Q)  # TODO for future: use XOF(H(pi||pj))
+    us = SHAKE128.new(SHA3_256.new(poly_to_bytes(pi + pj)).digest()).read(N)
     # SERVER: kj = (v + pi)s1' + uv + 2e1'''
     e1_tripleprime_seed = token_bytes(32)
     e1_tripleprime = create_one_cbd_poly(N, ETA, e1_tripleprime_seed, Q)
@@ -122,8 +123,8 @@ def phase_1(a, vs, sv):  # {u,v}s = u / verifier on server's side, {u,v}c = u / 
     # SERVER: sigmaj = Mod_2(kj, wj)
     sigmaj = [robust_extractor(k, w, Q) for k, w in zip(kj, wj)]
     # SERVER: skj = SHA3-256(sigmaj)  # TODO for future: implement it, now it is not useless
-    # CLIENT: u = XOF(H(pi||pj))  # TODO for future: compute it again
-    uc = us
+    # CLIENT: u = XOF(H(pi||pj))
+    uc = SHAKE128.new(SHA3_256.new(poly_to_bytes(pi + pj)).digest()).read(N)
     # CLIENT: v = asv + 2ev  # TODO for future: compute it again using seeds
     vc = vs
     # CLIENT ki = (pj − v)(sv + s1) + uv + 2e1''

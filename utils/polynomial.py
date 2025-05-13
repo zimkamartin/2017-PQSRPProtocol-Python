@@ -5,6 +5,10 @@ from numpy import round
 from utils.infinity_norm import symmetric_mod
 
 
+# Converts array of ints to its byte representation.
+def poly_to_bytes(p):
+    return b"".join(x.to_bytes(4, signed=True) for x in p)  # length 4 is sufficient for q = 1073479681 using the representation [-(q-1)/2, (q-1)/2]
+
 # Generates random polynomial of degree (n-1) with coefficients in Z_q.
 def generate_random_polynomial(n, q):
     poly = [0 for _ in range(n)]
