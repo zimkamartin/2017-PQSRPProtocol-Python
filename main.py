@@ -123,6 +123,7 @@ def phase_1(a, vs):  # {u,v}s = u / verifier on server's side, {u,v}c = u / veri
     # SERVER: sigmaj = Mod_2(kj, wj)
     sigmaj = [robust_extractor(k, w, Q) for k, w in zip(kj, wj)]
     # SERVER: skj = SHA3-256(sigmaj)  # TODO for future: implement it, now it is not useless
+    skj = SHA3_256.new(bytes(sigmaj)).digest()
     # CLIENT: u = XOF(H(pi||pj))
     uc = SHAKE128.new(SHA3_256.new(poly_to_bytes(pi + pj)).digest()).read(N)
     # CLIENT: v = asv + 2ev  # TODO for future: compute it again using seeds
@@ -144,7 +145,9 @@ def phase_1(a, vs):  # {u,v}s = u / verifier on server's side, {u,v}c = u / veri
     ki = add(added_fst_two, trd_multi, Q)
     # CLIENT: sigmai = Mod_2(ki, wj)
     sigmai = [robust_extractor(k, w, Q) for k, w in zip(ki, wj)]
-    # SERVER: ski = SHA3-256(sigmai)  # TODO for future: implement it, now it is useless
+    # SERVER: ski = SHA3-256(sigmai)
+    ski = SHA3_256.new(bytes(sigmai)).digest()
+    print(skj == ski)
     compare_sigmas(sigmai, sigmaj)  # Created just for debugging reasons.
     compare_ki_kj(ki, kj, sigmai, sigmaj)  # Created just for debugging reasons.
 
