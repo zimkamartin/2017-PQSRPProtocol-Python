@@ -54,38 +54,6 @@ def phase_0(a):
     return v
 
 
-# Prints both sigmas and compute statistics on how many bits they agree.
-def compare_sigmas(si, sj):
-    #print("Client's side: ", si)
-    #print("Server's side: ", sj)
-    assert len(si) == len(sj)
-    num_of_correct_ones = 0
-    for i in range(len(si)):
-        num_of_correct_ones += 1 if si[i] == sj[i] else 0
-    print(f"Sigmas agreed on {num_of_correct_ones} number of bits out of {len(si)} number of bits. That is {num_of_correct_ones * 100 / len(si)} percent.")
-
-
-# Checks how many tuples (also with positions) of ki and kj have the same parity, correct error tolerance,
-# how many tuples (again with positions) fulfill my condition.
-# Lastly checks how many of those (without and with my condition) generate the same output.
-def compare_ki_kj(ki, kj, si, sj):  # TODO: maybe do better statistics?
-    ok_parity = []
-    ok_error_tolerance = []
-    assert len(ki) == len(kj) == len(si) == len(sj)
-    for i in range(len(si)):
-        parity = (ki[i] - kj[i]) % 2 == 0  # they have the same parity
-        #error_tolerance = infinity_norm(ki[i] - kj[i], Q) <= math.floor(Q / 4) - 2
-        error_tolerance = abs(ki[i] - kj[i]) <= math.floor(Q / 4) - 2
-        if parity:
-            ok_parity.append(i)
-        if error_tolerance:
-            ok_error_tolerance.append(i)
-    #print(ok_parity)
-    #print(f"Number of elements with same parity: {len(ok_parity)}. That is {len(ok_parity) * 100 / len(si)} percent.")
-    #print(ok_error_tolerance)
-    #print(f"Number of elements with correct error tolerance: {len(ok_error_tolerance)}. That is {len(ok_error_tolerance) * 100 / len(si)} percent.")
-
-
 # Phase 1 in the protocol - shared secret creation.
 def phase_1(a, vs):  # {u,v}s = u / verifier on server's side, {u,v}c = u / verifier on client's side
     modulo_polynomial = generate_modulo_polynomial(N)
