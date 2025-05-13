@@ -51,7 +51,7 @@ def phase_0(a):
     a_sv = mul_simple(a, sv, modulo_polynomial, Q)
     two_ev = mul_simple(generate_constant_polynomial(2, N), ev, modulo_polynomial, Q)
     v = add(a_sv, two_ev, Q)
-    return v, sv  # Returning sv just for debugging reasons - In phase1 client should generate new, not use the old one.
+    return v
 
 
 # Prints both sigmas and compute statistics on how many bits they agree.
@@ -87,7 +87,7 @@ def compare_ki_kj(ki, kj, si, sj):  # TODO: maybe do better statistics?
 
 
 # Phase 1 in the protocol - shared secret creation.
-def phase_1(a, vs, sv):  # {u,v}s = u / verifier on server's side, {u,v}c = u / verifier on client's side
+def phase_1(a, vs):  # {u,v}s = u / verifier on server's side, {u,v}c = u / verifier on client's side
     modulo_polynomial = generate_modulo_polynomial(N)
     constant_two_polynomial = generate_constant_polynomial(2, N)
     # CLIENT: pi = as1 + 2e1
@@ -126,7 +126,12 @@ def phase_1(a, vs, sv):  # {u,v}s = u / verifier on server's side, {u,v}c = u / 
     # CLIENT: u = XOF(H(pi||pj))
     uc = SHAKE128.new(SHA3_256.new(poly_to_bytes(pi + pj)).digest()).read(N)
     # CLIENT: v = asv + 2ev  # TODO for future: compute it again using seeds
-    vc = vs
+    seed1, seed2 = create_seeds()
+    sv = create_one_cbd_poly(N, ETA, seed1, Q)
+    ev = create_one_cbd_poly(N, ETA, seed2, Q)
+    a_sv = mul_simple(a, sv, modulo_polynomial, Q)
+    two_ev = mul_simple(generate_constant_polynomial(2, N), ev, modulo_polynomial, Q)
+    vc = add(a_sv, two_ev, Q)
     # CLIENT ki = (pj − v)(sv + s1) + uv + 2e1''
     e1_doubleprime_seed = token_bytes(32)
     e1_doubleprime = create_one_cbd_poly(N, ETA, e1_doubleprime_seed, Q)
@@ -150,8 +155,8 @@ def phase_2():  # TODO for future: implement it, now it is useless
 
 def run_protocol():
     a = generate_random_polynomial(N, Q)  # public parameter  # TODO look how it is done in Kyber
-    v, sv = phase_0(a)
-    phase_1(a, v, sv)
+    v = phase_0(a)
+    phase_1(a, v)
     phase_2()
 
 
