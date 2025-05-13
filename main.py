@@ -2,7 +2,7 @@
 # Representation of polynomials: constant -> x^n. E.g. 5x^3 + 2x^2 + 1 = [1, 0, 2, 5]
 
 import math
-import random
+from secrets import token_bytes
 from utils.polynomial import add, sub, mul_simple, generate_modulo_polynomial, generate_random_polynomial, \
     generate_correct_complementary_coefficient, generate_constant_polynomial, generate_discrete_gaussian_polynomial
 from utils.infinity_norm import infinity_norm_iterable, symmetric_mod
@@ -90,26 +90,31 @@ def phase_1(a, vs, sv):  # {u,v}s = u / verifier on server's side, {u,v}c = u / 
     modulo_polynomial = generate_modulo_polynomial(N)
     constant_two_polynomial = generate_constant_polynomial(2, N)
     # CLIENT: pi = as1 + 2e1
-    s1 = generate_discrete_gaussian_polynomial(N, STD_DEV, Q)
-    e1 = generate_discrete_gaussian_polynomial(N, STD_DEV, Q)
+    s1_seed = token_bytes(32)
+    e1_seed = token_bytes(32)
+    s1 = create_one_cbd_poly(N, ETA, s1_seed, Q)
+    e1 = create_one_cbd_poly(N, ETA, e1_seed, Q)
     a_s1 = mul_simple(a, s1, modulo_polynomial, Q)
     two_e1 = mul_simple(constant_two_polynomial, e1, modulo_polynomial, Q)
     pi = add(a_s1, two_e1, Q)
     # SERVER: pj = as1' + 2e1' + v
-    s1prime = generate_discrete_gaussian_polynomial(N, STD_DEV, Q)
-    e1prime = generate_discrete_gaussian_polynomial(N, STD_DEV, Q)
-    a_s1prime = mul_simple(a, s1prime, modulo_polynomial, Q)
-    two_e1prime = mul_simple(constant_two_polynomial, e1prime, modulo_polynomial, Q)
+    s1_prime_seed = token_bytes(32)
+    e1_prime_seed = token_bytes(32)
+    s1_prime = create_one_cbd_poly(N, ETA, s1_prime_seed, Q)
+    e1_prime = create_one_cbd_poly(N, ETA, e1_prime_seed, Q)
+    a_s1prime = mul_simple(a, s1_prime, modulo_polynomial, Q)
+    two_e1prime = mul_simple(constant_two_polynomial, e1_prime, modulo_polynomial, Q)
     added_fst_two = add(a_s1prime, two_e1prime, Q)
     pj = add(added_fst_two, vs, Q)
     # SERVER: u = XOF(H(pi||pj))
     us = generate_random_polynomial(N, Q)  # TODO for future: use XOF(H(pi||pj))
     # SERVER: kj = (v + pi)s1' + uv + 2e1'''
-    e1_triple_prime = generate_discrete_gaussian_polynomial(N, STD_DEV, Q)
+    e1_tripleprime_seed = token_bytes(32)
+    e1_tripleprime = create_one_cbd_poly(N, ETA, e1_tripleprime_seed, Q)
     bracket = add(vs, pi, Q)
-    fst_multi = mul_simple(bracket, s1prime, modulo_polynomial, Q)
+    fst_multi = mul_simple(bracket, s1_prime, modulo_polynomial, Q)
     snd_multi = mul_simple(us, vs, modulo_polynomial, Q)
-    trd_multi = mul_simple(constant_two_polynomial, e1_triple_prime, modulo_polynomial, Q)
+    trd_multi = mul_simple(constant_two_polynomial, e1_tripleprime, modulo_polynomial, Q)
     added_fst_two = add(fst_multi, snd_multi, Q)
     kj = add(added_fst_two, trd_multi, Q)
     # SERVER: wj = Cha(kj)
@@ -122,12 +127,13 @@ def phase_1(a, vs, sv):  # {u,v}s = u / verifier on server's side, {u,v}c = u / 
     # CLIENT: v = asv + 2ev  # TODO for future: compute it again using seeds
     vc = vs
     # CLIENT ki = (pj − v)(sv + s1) + uv + 2e1''
-    e1_double_prime = generate_discrete_gaussian_polynomial(N, STD_DEV, Q)
+    e1_doubleprime_seed = token_bytes(32)
+    e1_doubleprime = create_one_cbd_poly(N, ETA, e1_doubleprime_seed, Q)
     fst_bracket = sub(pj, vc, Q)
     snd_bracket = add(sv, s1, Q)
     fst_multi = mul_simple(fst_bracket, snd_bracket, modulo_polynomial, Q)
     snd_multi = mul_simple(uc, vc, modulo_polynomial, Q)
-    trd_multi = mul_simple(constant_two_polynomial, e1_double_prime, modulo_polynomial, Q)
+    trd_multi = mul_simple(constant_two_polynomial, e1_doubleprime, modulo_polynomial, Q)
     added_fst_two = add(fst_multi, snd_multi, Q)
     ki = add(added_fst_two, trd_multi, Q)
     # CLIENT: sigmai = Mod_2(ki, wj)
