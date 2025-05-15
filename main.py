@@ -1,15 +1,13 @@
 # Simple implementation of P-Q SRP from 2017.
 # Representation of polynomials: constant -> x^n. E.g. 5x^3 + 2x^2 + 1 = [1, 0, 2, 5]
 
-import math
-from Crypto.Hash import SHAKE128, SHAKE256, SHA3_256, SHA3_512
+from Crypto.Hash import SHAKE128, SHA3_256
 from secrets import token_bytes
 from utils.polynomial import add, sub, mul_simple, generate_modulo_polynomial, generate_random_polynomial, \
-    generate_correct_complementary_coefficient, generate_constant_polynomial, generate_discrete_gaussian_polynomial, poly_to_bytes
-from utils.infinity_norm import infinity_norm_iterable, symmetric_mod
-from utils.magic import signal_function, robust_extractor, hint_function
+    generate_constant_polynomial, poly_to_bytes
+from utils.magic import signal_function, robust_extractor
 from cryptography.hazmat.primitives import hashes
-from kyber import create_one_cbd_poly
+from utils.kyber import create_one_cbd_poly
 
 # Params based on Section 4.1
 N = 1024
@@ -118,7 +116,7 @@ def phase_1(a, vs):  # {u,v}s = u / verifier on server's side, {u,v}c = u / veri
     return pi, pj, ski, skj
 
 
-def phase_2(pi, pj, ski, skj):  # TODO for future: implement it, now it is useless
+def phase_2(pi, pj, ski, skj):
     # CLIENT: M1 = SHA3-256(pi || pj || ski)
     m1 = SHA3_256.new(poly_to_bytes(pi + pj) + ski).digest()
     # SERVER: M1' = SHA3-256(pi || pj || skj)
