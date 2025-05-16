@@ -1,5 +1,15 @@
-# Simple implementation of P-Q SRP from 2017.
-# Representation of polynomials: constant -> x^n. E.g. 5x^3 + 2x^2 + 1 = [1, 0, 2, 5]
+# Simple implementation of P-Q SRP from 2017: https://eprint.iacr.org/2017/1196.pdf
+# Representation of polynomials: x^0, ..., x^n. E.g. 5x^3 + 2x^2 + 1 = [1, 0, 2, 5]
+
+# CHANGES compared to the 2017 article:
+# 1. Instead of Gaussian distribution, CBD is used. For shortest explanation possible, let me cite Kyber's documentation:
+#    “Theoretic treatments of LWE-based encryption typically consider LWE with Gaussian noise,
+#    either rounded Gaussian [71] or discrete Gaussian [21]. As a result, many early implementations
+#    also sampled noise from a discrete Gaussian distribution, which turns out to be either fairly
+#    inefficient (see, for example, [19]) or vulnerable to timing attacks (see, for example, [22, 68, 33]).”
+#    SOURCE for ^^: https://csrc.nist.gov/Projects/post-quantum-cryptography/post-quantum-cryptography-standardization/round-3-submissions
+#                   -> ZIP file -> ./NIST-PQ-Submission-Kyber-20201001/Supporting_Documentation/kyber.pdf
+
 
 from Crypto.Hash import SHAKE128, SHA3_256
 from secrets import token_bytes
@@ -88,11 +98,11 @@ def phase_1(a, vs):  # {u,v}s = u / verifier on server's side, {u,v}c = u / veri
     wj = [signal_function(x, Q) for x in kj]
     # SERVER: sigmaj = Mod_2(kj, wj)
     sigmaj = [robust_extractor(k, w, Q) for k, w in zip(kj, wj)]
-    # SERVER: skj = SHA3-256(sigmaj)  # TODO for future: implement it, now it is not useless
+    # SERVER: skj = SHA3-256(sigmaj)
     skj = SHA3_256.new(bytes(sigmaj)).digest()
     # CLIENT: u = XOF(H(pi||pj))
     uc = SHAKE128.new(SHA3_256.new(poly_to_bytes(pi + pj)).digest()).read(N)
-    # CLIENT: v = asv + 2ev  # TODO for future: compute it again using seeds
+    # CLIENT: v = asv + 2ev
     seed1, seed2 = create_seeds()
     sv = create_one_cbd_poly(N, ETA, seed1, Q)
     ev = create_one_cbd_poly(N, ETA, seed2, Q)
