@@ -2,13 +2,16 @@
 # Representation of polynomials: x^0, ..., x^n. E.g. 5x^3 + 2x^2 + 1 = [1, 0, 2, 5]
 
 # CHANGES compared to the 2017 article:
-# 1. Instead of Gaussian distribution, CBD is used. For shortest explanation possible, let me cite Kyber's documentation:
-#    “Theoretic treatments of LWE-based encryption typically consider LWE with Gaussian noise,
-#    either rounded Gaussian [71] or discrete Gaussian [21]. As a result, many early implementations
-#    also sampled noise from a discrete Gaussian distribution, which turns out to be either fairly
-#    inefficient (see, for example, [19]) or vulnerable to timing attacks (see, for example, [22, 68, 33]).”
-#    SOURCE for ^^: https://csrc.nist.gov/Projects/post-quantum-cryptography/post-quantum-cryptography-standardization/round-3-submissions
-#                   -> ZIP file -> ./NIST-PQ-Submission-Kyber-20201001/Supporting_Documentation/kyber.pdf
+# 1.   Instead of Gaussian distribution, CBD is used. For shortest explanation possible, let me cite Kyber's documentation:
+#      “Theoretic treatments of LWE-based encryption typically consider LWE with Gaussian noise,
+#      either rounded Gaussian [71] or discrete Gaussian [21]. As a result, many early implementations
+#      also sampled noise from a discrete Gaussian distribution, which turns out to be either fairly
+#      inefficient (see, for example, [19]) or vulnerable to timing attacks (see, for example, [22, 68, 33]).”
+#      SOURCE for ^^: https://csrc.nist.gov/Projects/post-quantum-cryptography/post-quantum-cryptography-standardization/round-3-submissions
+#                     -> ZIP file -> ./NIST-PQ-Submission-Kyber-20201001/Supporting_Documentation/kyber.pdf
+# (2.) Public polynomial a is generated using Kyber's algorithm 7 (SampleNTT(B)) - output is understood to be in normal, not NTT domain.
+#      This is because it seems to be more efficient to run secrets.token_bytes(33) once + 4-times SHAKE128 VS. random generator
+#      for all 1024 coefficients.
 
 
 from Crypto.Hash import SHAKE128, SHA3_256
@@ -17,7 +20,7 @@ from utils.polynomial import add, sub, mul_simple, generate_modulo_polynomial, g
     generate_constant_polynomial, poly_to_bytes
 from utils.magic import signal_function, robust_extractor
 from cryptography.hazmat.primitives import hashes
-from utils.kyber import create_one_cbd_poly
+from utils.kyber import create_one_cbd_poly, create_one_uniform_poly
 
 # Params based on Section 4.1
 N = 1024
@@ -142,7 +145,7 @@ def phase_2(pi, pj, ski, skj):
 
 
 def run_protocol():
-    a = generate_random_polynomial(N, Q)  # public parameter  # TODO look how it is done in Kyber
+    a = create_one_uniform_poly(N, Q)  # public parameter
     v = phase_0(a)
     pi, pj, ski, skj = phase_1(a, v)
     phase_2(pi, pj, ski, skj)
