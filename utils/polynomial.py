@@ -1,7 +1,3 @@
-from math import floor
-from random import randint
-from numpy.random import normal
-from numpy import round
 from utils.infinity_norm import symmetric_mod
 
 
