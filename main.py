@@ -16,7 +16,7 @@
 
 from Crypto.Hash import SHAKE128, SHA3_256
 from secrets import token_bytes
-from utils.polynomial import add, sub, mul_simple, generate_modulo_polynomial, generate_random_polynomial, \
+from utils.polynomial import add, sub, mul_simple, generate_modulo_polynomial, \
     generate_constant_polynomial, poly_to_bytes
 from utils.magic import signal_function, robust_extractor
 from cryptography.hazmat.primitives import hashes
@@ -25,7 +25,6 @@ from utils.kyber import create_one_cbd_poly, create_one_uniform_poly
 # Params based on Section 4.1
 N = 1024
 Q = 1073479681
-STD_DEV = 3.192
 
 ETA = 2
 

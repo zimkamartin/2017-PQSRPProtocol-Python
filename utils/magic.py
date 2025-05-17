@@ -26,5 +26,5 @@ def signal_function(y, q):
 # Implementation of a robust extractor (Mod_2(x, w)) from article A Simple Provably Secure Key Exchange Scheme
 # Based on the Learning with Errors Problem.
 def robust_extractor(x, w, q):
-    x = symmetric_mod(x, q)  # v02
+    x = symmetric_mod(x, q)
     return int(symmetric_mod(x + w * (q - 1) / 2, q)) % 2

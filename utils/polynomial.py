@@ -9,47 +9,12 @@ from utils.infinity_norm import symmetric_mod
 def poly_to_bytes(p):
     return b"".join(x.to_bytes(4, signed=True) for x in p)  # length 4 is sufficient for q = 1073479681 using the representation [-(q-1)/2, (q-1)/2]
 
-# Generates random polynomial of degree (n-1) with coefficients in Z_q.
-def generate_random_polynomial(n, q):
-    poly = [0 for _ in range(n)]
-    for i in range(n):
-        poly[i] = symmetric_mod(randint(0, q - 1), q)
-    return poly
-
 
 # Creates polynomial representing constant c.
 def generate_constant_polynomial(c, n):
     poly = [0] * n
     poly[0] = c  # constant term (x^0)
     return poly
-
-
-# Creates polynomial of degree (N-1) with coefficients based on Discrete Gaussian distribution
-# with mean 0 and standard deviation STD_DEV.
-def generate_discrete_gaussian_polynomial(n, std_dev, q):  # SOURCE: CHAT GPT
-    # Generate float samples from normal distribution
-    samples = normal(loc=0, scale=std_dev, size=n)
-    # Round to nearest integer to get discrete values
-    discrete_samples = round(samples).astype(int)
-    polynomial = discrete_samples.tolist()
-    return [symmetric_mod(p, q) for p in polynomial]  # just to make sure that it is in [-(q-1)/2, (q-1)/2]
-
-
-# Generates random coefficient close to coefficient i, that fulfills the condition from 3.2. and (i - j) % 2 == 0 holds.
-# Starts from wide spectrum and gradually shrinks the interval around coefficient i.
-def generate_correct_complementary_coefficient(i, q):
-    distance = min(int((q - 1) / 2) - i, abs(-int((q - 1) / 2) - i))
-    while True:
-        #j = randint(i - distance, i + distance)
-        j = randint(0, q - 1)  # JUST A TEST, this way maybe I will have better possibility coverage
-        j = symmetric_mod(j, q)  # make sure that j is in v02
-        if (i - j) % 2 != 0:
-            continue
-        k = i - j
-        #if infinity_norm(k, q) <= floor(q / 4) - 2:
-        if abs(k) <= floor(q / 4) - 2:
-            return j
-        distance //= 2  # Decrease distance by half
 
 
 # Creates polynomial f used for modulo operations.
@@ -103,7 +68,3 @@ def mul_simple(a, b, f, q):
 
     tmp = list(map(lambda x: symmetric_mod(x, q), tmp))
     return tmp[:degree_f]
-
-
-if __name__ == '__main__':
-    pass
