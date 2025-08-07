@@ -21,6 +21,7 @@ from utils.polynomial import add, sub, mul_simple, generate_modulo_polynomial, \
 from utils.magic import signal_function, robust_extractor
 from cryptography.hazmat.primitives import hashes
 from utils.kyber import create_one_cbd_poly, create_one_uniform_poly
+from utils.ntt import convert_to_ntt, multiply_ntt_polys, convert_from_ntt
 
 # Params based on Section 4.1
 N = 1024
@@ -148,7 +149,6 @@ def run_protocol():
     v = phase_0(a)
     pi, pj, ski, skj = phase_1(a, v)
     phase_2(pi, pj, ski, skj)
-
 
 if __name__ == '__main__':
     run_protocol()
