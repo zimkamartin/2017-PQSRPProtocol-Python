@@ -31,10 +31,10 @@ def sample_ntt(b, q, a, frm):
         d1  = c[0] + 256*(c[1] % 16)
         d2  = (c[1] // 16) + 16*c[2]
         if d1 < q:
-            a[frm + j] = symmetric_mod(d1, q)
+            a[frm + j] = d1
             j += 1
         if d2 < q and j < 256:
-            a[frm + j] = symmetric_mod(d2, q)
+            a[frm + j] = d2
             j += 1
 
 
